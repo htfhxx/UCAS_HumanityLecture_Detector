@@ -109,10 +109,6 @@ class LoginUCAS(object):
                 time.sleep(self.config["interval"])
             except requests.exceptions.ConnectionError:
                 print("网络错误, 正在重新连接...")
-                self.cnt += 1
-                if self.cnt > 20:
-                    print("教务处似乎登不上...")
-                    exit(1)
                 return self.login_sep()
         
     def sign(self, new_courses):
