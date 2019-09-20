@@ -1,0 +1,18 @@
+# sep账号
+username: 15222617505@163.com
+# sep密码
+password: 111111qq.
+
+# 是否自动报名
+autoChoose: False
+# 查询间隔，单位 秒
+interval: 180
+
+# QQ邮箱及其授权码（QQ邮箱-账户-获取授权码）
+main_mail: 496813470@qq.com
+main_pwd: iagoakseglstbghh
+
+# 需要提醒的邮箱
+otherMails:
+    - 496813470@qq.com
+    - 137862799@qq.com
