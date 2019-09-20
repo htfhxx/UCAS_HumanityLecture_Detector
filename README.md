@@ -41,6 +41,7 @@ python main.py
 ## 问题
 
 Q: Linux运行程序时smtp超时无法连接?
+
 A: 修改`main.py` 32-33行:
 ```python
     self.smtpObj = smtplib.SMTP_SSL() 
