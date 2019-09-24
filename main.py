@@ -162,6 +162,8 @@ class LoginUCAS(object):
                 self.cnt = 0
                 print("教务处好像登不上...")
             return self.login_sep()
+        except:
+            return self.login_sep()
         return self
 
 
