@@ -88,7 +88,7 @@ class LoginUCAS(object):
     def parser(self):
         url = 'http://jwxk.ucas.ac.cn/subject/humanityLecture'
         r = self.session.get(url, headers=self.headers)
-        course_list = set(re.findall(r"<a href=\"#\" onclick=\"toSign\('([0-9]*)','(.*)'\)\">报名</a>", r.text))
+        course_list = set(re.findall(r"<a href=\"/subject/([0-9]*)/humanityView\" target=\"_blank\"\>查看详情</a>", r.text))
         return course_list
 
 
@@ -107,7 +107,7 @@ class LoginUCAS(object):
                     if self.config["autoChoose"]:
                         self.sign(new_courses)
                 time.sleep(self.config["interval"])
-            except requests.exceptions.ConnectionError:
+            except:
                 print("网络错误, 正在重新连接...")
                 return self.login_sep()
         
