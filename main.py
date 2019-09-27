@@ -102,6 +102,7 @@ class LoginUCAS(object):
                 if len(result) > len(self.old_list):
                     new_courses = result - self.old_list
                     print("New %d Courses!"%(len(new_courses)))
+                    self.mail_sender = MailSender(self.config["main_mail"], self.config["main_pwd"], self.config["otherMails"])
                     self.mail_sender.send("已发布%d门新讲座!"%(len(new_courses)))
                     self.old_list = result
                     if self.config["autoChoose"]:
