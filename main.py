@@ -97,6 +97,7 @@ class LoginUCAS(object):
             self.login_jwxk()
             r = self.session.get(url, headers=self.headers)
             course_list = set(re.findall(r"<a href=\"/subject/([0-9]*)/humanityView\" target=\"_blank\"\>查看详情</a>", r.text))
+        print(course_list)
         return course_list
 
 
@@ -130,8 +131,7 @@ class LoginUCAS(object):
     def sign(self, new_courses):
         for info in new_courses:
             data = {
-                "lectureId": info[0],
-                "communicationAddress": info[1]
+                "lectureId": info
             }
             r = self.session.post("http://jwxk.ucas.ac.cn/subject/toSign", data=data, headers=self.headers)
             if r.text == "success":

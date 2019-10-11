@@ -1,6 +1,5 @@
 # UCAS_HumanityLecture_Detector
-国科大人文讲座监测及自动报名脚本
-
+国科大人文讲座监测及自动报名脚本 (自动报名待测试)
 ## 环境依赖
 
 python 3.6
