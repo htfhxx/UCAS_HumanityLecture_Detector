@@ -29,8 +29,10 @@ class MailSender:
     
     def getConnect(self):
         try:
+            # self.smtpObj = smtplib.SMTP_SSL() 
+            # self.smtpObj.connect(self.mail_host, 465)
             self.smtpObj = smtplib.SMTP() 
-            self.smtpObj.connect(self.mail_host, 25)    # 25 为 SMTP 端口号
+            self.smtpObj.connect(self.mail_host, 25)
             self.smtpObj.login(self.mail_user,self.mail_pass)
         except Exception:
             print("无法登录邮箱, 请检查用户名或密码是否正确")
@@ -87,8 +89,14 @@ class LoginUCAS(object):
 
     def parser(self):
         url = 'http://jwxk.ucas.ac.cn/subject/humanityLecture'
+
         r = self.session.get(url, headers=self.headers)
         course_list = set(re.findall(r"<a href=\"/subject/([0-9]*)/humanityView\" target=\"_blank\"\>查看详情</a>", r.text))
+        while len(course_list)==0:
+            print("用户在其它地方登录, 正在重新登录...")
+            self.login_jwxk()
+            r = self.session.get(url, headers=self.headers)
+            course_list = set(re.findall(r"<a href=\"/subject/([0-9]*)/humanityView\" target=\"_blank\"\>查看详情</a>", r.text))
         return course_list
 
 
@@ -96,9 +104,10 @@ class LoginUCAS(object):
         count = 0
         while True:
             count += 1
-            print("%d 次刷新..."%count)
+            print("\n%d 次刷新..."%count)
             try:
                 result = self.parser()
+                print("当前讲座数 %d, 上一轮讲座数 %d "%(len(result), len(self.old_list)))
                 if len(result) > len(self.old_list):
                     new_courses = result - self.old_list
                     print("New %d Courses!"%(len(new_courses)))
@@ -108,9 +117,15 @@ class LoginUCAS(object):
                     if self.config["autoChoose"]:
                         self.sign(new_courses)
                 time.sleep(self.config["interval"])
-            except:
-                print("网络错误, 正在重新连接...")
+            
+            except requests.exceptions.ConnectionError:
+                self.cnt += 1
+                if self.cnt > 20:
+                    print("教务处好像登不上, 5分钟后重新尝试连接...")
+                    time.sleep(300)
+                    self.cnt = 0
                 return self.login_sep()
+
         
     def sign(self, new_courses):
         for info in new_courses:
@@ -124,6 +139,19 @@ class LoginUCAS(object):
             else:
                 print("讲座报名失败!")
 
+    def login_jwxk(self):
+        url = "http://sep.ucas.ac.cn/portal/site/226/821"
+        r = self.session.get(url, headers=self.headers)
+        try:
+            code = re.findall(r'"http://jwxk.ucas.ac.cn/login\?Identity=(.*)"', r.text)[0]
+        except IndexError:
+            raise NoLoginError
+        url = "http://jwxk.ucas.ac.cn/login?Identity=" + code
+        self.headers['Host'] = "jwxk.ucas.ac.cn"
+        self.session.get(url, headers=self.headers)
+        self.old_list = self.parser()
+
+
     def login_sep(self):
         try:
             if not self.cnt:
@@ -132,38 +160,25 @@ class LoginUCAS(object):
                 self.url['login_url'], data=self.post_data, headers=self.headers).text
             
             res = json.loads(html)
+
             if not res['f']:
                 raise UserNameOrPasswordError
             else:
                 html = self.session.get(res['msg']).text
                 print("登录成功")
             
-            url = "http://sep.ucas.ac.cn/portal/site/226/821"
-            r = self.session.get(url, headers=self.headers)
-            
-            try:
-                code = re.findall(r'"http://jwxk.ucas.ac.cn/login\?Identity=(.*)"', r.text)[0]
-            except IndexError:
-                raise NoLoginError
-
-            url = "http://jwxk.ucas.ac.cn/login?Identity=" + code
-            self.headers['Host'] = "jwxk.ucas.ac.cn"
-            self.session.get(url, headers=self.headers)
-            self.old_list = self.parser()
-            
-            print("当前可报名讲座数: %d"%(len(self.old_list)))
+            self.login_jwxk()
+            print("当前讲座数: %d"%(len(self.old_list)))
             self.cnt = 0
-            
         except UserNameOrPasswordError:
             print('用户名或者密码错误')
             exit(1)
         except requests.exceptions.ConnectionError:
             self.cnt += 1
             if self.cnt > 20:
+                print("教务处好像登不上, 5分钟后重新尝试连接...")
+                time.sleep(300)
                 self.cnt = 0
-                print("教务处好像登不上...")
-            return self.login_sep()
-        except:
             return self.login_sep()
         return self
 

@@ -1,7 +1,5 @@
 # UCAS_HumanityLecture_Detector
-国科大人文讲座监测及自动报名脚本(测试中...)
-
-不太稳定, 断线情况还在测试...
+国科大人文讲座监测及自动报名脚本
 
 ## 环境依赖
 
@@ -40,12 +38,27 @@ otherMails:
 python main.py
 ```
 
+服务器后台运行
+```sh
+nohup python -u main.py > log &
+```
 ## 问题
 
-Q: Linux运行程序时smtp超时无法连接?
+Q: Linux运行程序时 SMTP 超时无法连接?
 
-A: 修改`main.py` 32-33行:
+A: 修改`main.py` 32-35行:
+```python
+    # self.smtpObj = smtplib.SMTP_SSL() 
+    # self.smtpObj.connect(self.mail_host, 465)
+    self.smtpObj = smtplib.SMTP() 
+    self.smtpObj.connect(self.mail_host, 25)
+```
+为
 ```python
     self.smtpObj = smtplib.SMTP_SSL() 
     self.smtpObj.connect(self.mail_host, 465)
+    # self.smtpObj = smtplib.SMTP() 
+    # self.smtpObj.connect(self.mail_host, 25)
 ```
+## 更新
+2019.10.11 修复用户登录选课系统导致后台程序错误的BUG
